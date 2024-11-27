@@ -1,9 +1,10 @@
-#ifndef INTAKE_H_
-#define INTAKE_H_
+#pragma once
 
-#include "frc/WPILib.h"
-#include <ctre/Phoenix.h>
-#include "Feedback.h"
+#include <ctre/phoenix/motorcontrol/can/TalonSRX.h>
+#include <rev/CANSparkmax.h>
+#include <frc/AnalogPotentiometer.h>
+#include <frc/DigitalInput.h>
+#include "IOMap.h"
 
 using namespace frc;
 
@@ -13,10 +14,6 @@ class Intake {
 	typedef enum {IN, OUT, STOP} BeaterBarDirection;
 
 	Intake();
-
-	/*debug*/
-	void Debug(Feedback *feedback);
-
 	/* tells the intake to rotate at a specified speed
 	 *  Takes in speed you want to move the Pivot
 	 * Speed takes a value of -1 to 1
@@ -108,28 +105,26 @@ class Intake {
 	 */
 	void Stop_Goto();
 	private:
-	ctre::phoenix::motorcontrol::can::TalonSRX PivotMotor;
-	ctre::phoenix::motorcontrol::can::TalonSRX BeaterBarMotor;
-	DigitalInput BeamBreak;
-	DigitalInput UpperLimit;
-	DigitalInput LowerLimit;
-	AnalogInput PivotPot;
+	ctre::phoenix::motorcontrol::can::TalonSRX PivotMotor {CAN_ID_BREACHER_PIVOT};
+	rev::CANSparkMax BeaterBarMotor {CAN_ID_BREACHER_BEATER_BAR, rev::CANSparkMax::MotorType::kBrushless};
+	// frc::DigitalInput BeamBreak {DIG_IO_BREACHER_BEAM_BREAK};
+	frc::DigitalInput UpperLimit {DIG_IO_BREACHER_UPPER_LIMIT};
+	frc::DigitalInput LowerLimit {DIG_IO_BREACHER_LOWER_LIMIT};
+	frc::AnalogPotentiometer PivotPot {ANALOG_IN_BREACHER_POT};
 
-	float _desiredPivotSpeed;
-	float _beaterBarSpeed;
-	float _desiredGotoAngle;
-	bool _pivotBroken;
-	bool _beaterBroken;
+	float _desiredPivotSpeed = 0;
+	float _beaterBarSpeed = 0;
+	float _desiredGotoAngle = 0;
+	bool _pivotBroken = false;
+	bool _beaterBroken = false;
 	typedef enum {GOTO, MANUAL} pivotControl;
 
-	bool isAtPosition;
+	bool isAtPosition = false;
 	/*
 	 * Set all motors to neutral for easy manual manipulation
+	 * Currently commented out because now requires burnflash :P
 	 */
-	void SetNeutral(bool neutral);
+	// void SetNeutral(bool neutral);
 
 	pivotControl _pivotControlMode;
-
-
 };
-#endif

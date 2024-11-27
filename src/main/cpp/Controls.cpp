@@ -1,4 +1,3 @@
-#include "frc/WPILib.h"
 #include "Controls.h"
 
 #define JOYSTICK_DRIVER 0
@@ -59,49 +58,43 @@
 #define AUX_INTAKE_DRAWBRIDGE 4
 
 // constructor
-Controls::Controls(Drive *drive, Intake *intake, Scaler *scaler, Feedback *feedback)
+Controls::Controls(Drive *drive, Intake *intake)
 {
 	// save given object pointers, for later use
 	_intake = intake;
-	_scaler = scaler;
 	_drive = drive;
-	_feedback = feedback;
 
 	// create broken switch objects
 	_brokenJoystick = new Joystick(JOYSTICK_BROKEN);
 	_brokenBreacherPivot = new ControlsButton(_brokenJoystick, BROKEN_BREACHER_PIVOT);
 	_brokenBreacherIntake = new ControlsButton(_brokenJoystick, BROKEN_BREACHER_INTAKE);
-	_brokenArmRotate = new  ControlsButton(_brokenJoystick, BROKEN_ARM_ROTATE);
-	_brokenArmTelescope = new ControlsButton(_brokenJoystick, BROKEN_ARM_TELESCOPE);
-	_brokenInPitMode = new ControlsButton(_brokenJoystick, BROKEN_IN_PIT_MODE);
+	// _brokenArmRotate = new  ControlsButton(_brokenJoystick, BROKEN_ARM_ROTATE);
+	// _brokenArmTelescope = new ControlsButton(_brokenJoystick, BROKEN_ARM_TELESCOPE);
+	// _brokenInPitMode = new ControlsButton(_brokenJoystick, BROKEN_IN_PIT_MODE);
 
 	// create driver controller objects
 	_driverJoystick = new Joystick(JOYSTICK_DRIVER);
 	_driverSwapDrive = new ControlsButton(_driverJoystick, DRIVER_SWAP_DRIVE_BUTTON);
-	_driverSwapCameras = new ControlsButton(_driverJoystick, DRIVER_SWAP_CAMERAS_BUTTON);
 	_swapDrive = 0;
 
 	// create aux controller objects
 	_auxJoystick = new Joystick(JOYSTICK_AUX);
-	_auxSwapCameras = new ControlsButton(_driverJoystick, AUX_SWAP_CAMERAS_BUTTON);
-#if 0
-	_auxScalerUp = new ControlsButton(_auxJoystick, AUX_SCALER_UP_BUTTON);
-	_auxScalerDown = new ControlsButton(_auxJoystick, AUX_SCALER_DOWN_BUTTON);
-#else
-	_auxScalerUp = new ControlsButton(_auxJoystick, AUX_SCALER_UP_POV,  true);
-	_auxScalerDown = new ControlsButton(_auxJoystick, AUX_SCALER_DOWN_POV, true);
-#endif
+// #if 0
+// 	_auxScalerUp = new ControlsButton(_auxJoystick, AUX_SCALER_UP_BUTTON);
+// 	_auxScalerDown = new ControlsButton(_auxJoystick, AUX_SCALER_DOWN_BUTTON);
+// #else
+// 	_auxScalerUp = new ControlsButton(_auxJoystick, AUX_SCALER_UP_POV,  true);
+// 	_auxScalerDown = new ControlsButton(_auxJoystick, AUX_SCALER_DOWN_POV, true);
+// #endif
 	_auxIntakeDrawbridge = new ControlsButton(_auxJoystick, AUX_INTAKE_DRAWBRIDGE);
 
 
 	// initialize dashboard items
 	_dashboardInitialized = false;
 	_breacherPosition = 0;
-	_scalerPivot = 0;
-	_scalerExt = 0;
 	_haveBall = 0;
-	_armLocked = 0;
-	_frontCamera = 0;
+	// _armLocked = 0;
+	// _frontCamera = 0;
 	_driveReverse = 0;
 }
 
@@ -216,15 +209,11 @@ void Controls::ProcessControllerDriver()
 void Controls::ProcessControllerAux()
 {
 	float auxBreacherPivot;
-	float auxScalerExtend;
 	Intake::BeaterBarDirection beaterDirection;
 	if(!_auxIntakeDrawbridge->Pressed()){
 		auxBreacherPivot = GetPosition(_auxJoystick, AUX_LEFT_Y_AXIS); // we want Y value to be inverted
 		_intake->Pivot(auxBreacherPivot);
 	}
-	auxScalerExtend = -GetPosition(_auxJoystick, AUX_RIGHT_Y_AXIS); // joystick Y values are inverted
-	_scaler->Extend_Arm(auxScalerExtend);
-
 
 	// check intake button to see if its state changed
 	beaterDirection = Intake::BeaterBarDirection::STOP;
@@ -237,36 +226,6 @@ void Controls::ProcessControllerAux()
 		beaterDirection = Intake::BeaterBarDirection::OUT;
 	}
 	_intake->Beater_Bar(beaterDirection);
-
-	// check scaler up button to see if its state changed
-	if (_auxScalerUp->Process())
-	{
-		if (!_auxScalerUp->Pressed())
-		{
-			// Button was just released so stop pivot
-			_scaler->Pivot_Arm(Scaler::Direction::SCALE_STOP);
-		}
-		else
-		{
-			// button was just pressed, so start pivot
-			_scaler->Pivot_Arm(Scaler::Direction::SCALE_UP);
-		}
-	}
-
-	// check scaler down button to see if its state changed
-	if (_auxScalerDown->Process())
-	{
-		if (!_auxScalerDown->Pressed())
-		{
-			// Button was just released so stop extension
-			_scaler->Pivot_Arm(Scaler::Direction::SCALE_STOP);
-		}
-		else
-		{
-			// button was just pressed, so start extension
-			_scaler->Pivot_Arm(Scaler::Direction::SCALE_DOWN);
-		}
-	}
 
 	// check drawbridge preset
 #if 1
@@ -282,18 +241,6 @@ void Controls::ProcessControllerAux()
 		}
 	}
 #endif
-
-	// see if arm should be locked
-	if ((_auxJoystick->GetPOV() == AUX_ARM_LOCK_POV) && (GetPosition(_auxJoystick, AUX_ARM_LOCK_AXIS) > 0))
-	{
-		_scaler->Lock_Arm(true);
-	}
-
-	// see if arm should be unlocked
-	if ((_auxJoystick->GetPOV() == AUX_ARM_UNLOCK_POV) && _auxJoystick->GetRawButton(AUX_ARM_UNLOCK_BUTTON))
-	{
-		_scaler->Lock_Arm(false);
-	}
 }
 
 float Controls::GetPosition(Joystick *joystick, int axis, bool fullrange)
@@ -374,32 +321,20 @@ void Controls::ProcessBroken()
 	{
 		_intake->Beater_Bar_Set_Broken(_brokenBreacherIntake->Pressed());
 	}
-	if (_brokenArmRotate->Process())
-	{
-		_scaler->Pivot_Set_Broken(_brokenArmRotate->Pressed());
-	}
-	if (_brokenArmTelescope->Process())
-	{
-		_scaler->Extension_Set_Broken(_brokenArmTelescope->Pressed());
-	}
-	if (_brokenInPitMode->Process())
-	{
-		_scaler->RunInPitMode(_brokenInPitMode->Pressed());
-		SmartDashboard::PutNumber("thunderdashboard_inpitmode", (_brokenInPitMode->Pressed() ? 1 : 0));
-	}
+	// if (_brokenArmRotate->Process())
+	// {
+	// 	// _scaler->Pivot_Set_Broken(_brokenArmRotate->Pressed());
+	// }
+	// if (_brokenArmTelescope->Process())
+	// {
+	// 	// _scaler->Extension_Set_Broken(_brokenArmTelescope->Pressed());
+	// }
+	// if (_brokenInPitMode->Process())
+	// {
+	// 	// _scaler->RunInPitMode(_brokenInPitMode->Pressed());
+	// 	SmartDashboard::PutNumber("thunderdashboard_inpitmode", (_brokenInPitMode->Pressed() ? 1 : 0));
+	// }
 	// use tank broken switch is handled in ProcessControllerDriver()
-
-
-	// see if camera feed needs to swap
-	// NOTE: done here so it happens in disabled
-	if (_driverSwapCameras->Process() && _driverSwapCameras->Pressed())
-	{
-		_feedback->swapCamera();
-	}
-	if (_auxSwapCameras->Process() && _auxSwapCameras->Pressed())
-	{
-		_feedback->swapCamera();
-	}
 }
 
 // process items for the dashboard
@@ -413,22 +348,6 @@ void Controls::ProcessDashboard()
 	{
 		_breacherPosition = breacherPosition;
 		SmartDashboard::PutNumber("thunderdashboard_breacher", _breacherPosition);
-	}
-
-	// see if scaler pivot changed
-	int scalerPivot = (int)(_scaler->Pivot_Get_Angle() * 100.0);
-	if ((scalerPivot != _scalerPivot) || !_dashboardInitialized)
-	{
-		_scalerPivot = scalerPivot;
-		SmartDashboard::PutNumber("thunderdashboard_scalerpivot", _scalerPivot);
-	}
-
-	// see if scaler extension changed
-	int scalerExt = (int)(_scaler->Extension_Get() * 100.0);
-	if ((scalerExt != _scalerExt) || !_dashboardInitialized)
-	{
-		_scalerExt = scalerExt;
-		SmartDashboard::PutNumber("thunderdashboard_scalerext", _scalerExt);
 	}
 
 	// see if robot has ball
@@ -445,38 +364,6 @@ void Controls::ProcessDashboard()
 	{
 		_haveBall = haveBall;
 		SmartDashboard::PutNumber("thunderdashboard_haveball", _haveBall);
-	}
-
-	// see if scaler is locked
-	int armLocked;
-	if (_scaler->Is_Arm_Locked())
-	{
-		armLocked = 1;
-	}
-	else
-	{
-		armLocked = 0;
-	}
-	if ((armLocked != _armLocked) || !_dashboardInitialized)
-	{
-		_armLocked = armLocked;
-		SmartDashboard::PutNumber("thunderdashboard_armlocked", _armLocked);
-	}
-
-	// get camera side
-	int frontCamera;
-	if (_feedback->isFrontCamera())
-	{
-		frontCamera = 1;
-	}
-	else
-	{
-		frontCamera = 0;
-	}
-	if ((frontCamera != _frontCamera) || !_dashboardInitialized)
-	{
-		_frontCamera = frontCamera;
-		SmartDashboard::PutNumber("thunderdashboard_frontcamera", _frontCamera);
 	}
 
 	// get state of drive swap to see if it changed

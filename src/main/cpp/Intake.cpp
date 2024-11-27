@@ -1,5 +1,6 @@
 #include "Intake.h"
 #include "IOMap.h"
+
 const double BEATER_BAR_SPEED_IN = .65;     	//Speed of Intake Going In
 const double BEATER_BAR_SPEED_OUT = -.8;   	//Speed of Intake Going Out
 const double PIVOT_LOWER_LIMIT_ANGLE = 0;  	//normalized value of the low value of the pivot potentiometer, dont mess with this
@@ -33,51 +34,46 @@ const float MAX_PIVOT_SPEED_DOWN_SLOW = -.1;					//-.2
 
 
 Intake::Intake():// construction, in same order as .h
-		PivotMotor(CAN_ID_BREACHER_PIVOT),
-		BeaterBarMotor(CAN_ID_BREACHER_BEATER_BAR),
-		BeamBreak(DIG_IO_BREACHER_BEAM_BREAK),
-		UpperLimit(DIG_IO_BREACHER_UPPER_LIMIT),
-		LowerLimit(DIG_IO_BREACHER_LOWER_LIMIT),
-		PivotPot(ANALOG_IN_BREACHER_POT),
-	    _desiredPivotSpeed(0),
-		_beaterBarSpeed(0),
-		_desiredGotoAngle(0),
-		_pivotBroken(false),
-		_beaterBroken(false),
-		isAtPosition(false),
+		// PivotMotor,
+		// BeaterBarMotor,
+		// BeamBreak,
+		// UpperLimit,
+		// LowerLimit,
+		// PivotPot,
+	    // _desiredPivotSpeed,
+		// _beaterBarSpeed,
+		// _desiredGotoAngle,
+		// _pivotBroken,
+		// _beaterBroken,
+		// isAtPosition,
 		_pivotControlMode(MANUAL)
 		{
 	BeaterBarMotor.SetInverted(true);
 	PivotMotor.SetInverted(true);
-	BeaterBarMotor.ConfigOpenloopRamp(0.3, 0);
-	SetNeutral(true);
-}
-
-void Intake::SetNeutral(bool neutral){
-	NeutralMode n = neutral ? NeutralMode::Coast : NeutralMode::Brake;
-	BeaterBarMotor.SetNeutralMode(n);
-	PivotMotor.SetNeutralMode(n);
-}
-
-void Intake::Reset(){
+	// BeaterBarMotor.ConfigOpenloopRamp(0.3, 0);
+	BeaterBarMotor.SetOpenLoopRampRate(.3);
+	// SetNeutral(true);
+	//The below is a replacement for setneutral at the moment
 	_desiredPivotSpeed = 0;
 	_beaterBarSpeed = 0;
-	BeaterBarMotor.Set(ControlMode::PercentOutput, 0);
-	PivotMotor.Set(ControlMode::PercentOutput, 0);
 	_pivotControlMode = MANUAL;
 	isAtPosition = false;
 }
 
-void Intake::Debug(Feedback *feedback){
-	feedback->send_Debug_String("Breacher", "Beater Broken State", "%s", _beaterBroken? "True":"False");
-	feedback->send_Debug_String("Breacher", "Pivot Broken State", "%s", _pivotBroken? "True":"False");
-	feedback->send_Debug_Double("Breacher", "Beater Speed",(double)_beaterBarSpeed);
-	feedback->send_Debug_Double("Breacher", "Pivot Speed",(double)_desiredPivotSpeed);
-	feedback->send_Debug_Double("Breacher", "Pot Sensor",(double)PivotPot.GetVoltage());
-	feedback->send_Debug_Double("Breacher", "Pot Sensor 1-0",(double)Pivot_Get_Angle());
-	feedback->send_Debug_String("Breacher", "Pivot Upper Limit", "%s", UpperLimit.Get()? "True":"False");
-	feedback->send_Debug_String("Breacher", "Pivot Lower Limit", "%s", LowerLimit.Get()? "True":"False");
-	feedback->send_Debug_String("Breacher", "Intake Beam Break", "%s", !BeamBreak.Get()? "True":"False");
+//Probably not needed anymore 
+// void Intake::SetNeutral(bool neutral){
+// 	NeutralMode n = neutral ? NeutralMode::Coast : NeutralMode::Brake;
+// 	BeaterBarMotor.SetIdleMode(n); //Needs a burn flash
+// 	PivotMotor.SetNeutralMode(n);
+// }
+
+void Intake::Reset(){
+	_desiredPivotSpeed = 0;
+	_beaterBarSpeed = 0;
+	BeaterBarMotor.Set(0);
+	PivotMotor.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, 0);
+	_pivotControlMode = MANUAL;
+	isAtPosition = false;
 }
 
 void Intake::Process() {
@@ -164,15 +160,15 @@ void Intake::Process() {
 
 
 	//printf("%f Beaterafter \n", (double)_beaterBarSpeed);
-	if ((_beaterBarSpeed > 0 && !BeamBreak.Get()) && !_beaterBroken){
+	if (_beaterBarSpeed > 0 && /*!BeamBreak.Get()) && */!_beaterBroken){
 		_beaterBarSpeed = 0;										//if we broken or we got a ball and we tryin an roll balls in
 	}
 	//printf("%f BeaterB4", (double)_beaterBarSpeed);
 	/*
 	Apply Values
 	*/
-	BeaterBarMotor.Set(ControlMode::PercentOutput, _beaterBarSpeed); //Applies calculated values of _beaterBarSpeed to the Beater Bar Motor
-	PivotMotor.Set(ControlMode::PercentOutput, _desiredPivotSpeed); //Applies calculated value of _desiredPivotSpeed to the Pivot Motor
+	BeaterBarMotor.Set(_beaterBarSpeed); //Applies calculated values of _beaterBarSpeed to the Beater Bar Motor
+	PivotMotor.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, _desiredPivotSpeed); //Applies calculated value of _desiredPivotSpeed to the Pivot Motor
 	/*DEBUG*/
 
 }
@@ -196,11 +192,11 @@ bool Intake::Pivot_At_Lower_Stop(){//as it says in Intake.h
 }
 
 float Intake::Pivot_Get_Angle(){//as it says in Intake.h
-	return (PivotPot.GetVoltage() - PIVOT_POT_LOW_VALUE) / (PIVOT_POT_HIGH_VALUE - PIVOT_POT_LOW_VALUE);
+	return (PivotPot.Get() - PIVOT_POT_LOW_VALUE) / (PIVOT_POT_HIGH_VALUE - PIVOT_POT_LOW_VALUE);
 }
 
 bool Intake::Is_Ball_Acquired(){//as it says in Intake.h
-	return !BeamBreak.Get();
+	return true;//!BeamBreak.Get();
 }
 
 void Intake::Beater_Bar(BeaterBarDirection direction){
