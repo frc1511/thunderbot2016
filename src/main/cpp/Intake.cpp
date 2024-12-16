@@ -34,7 +34,7 @@ const float MAX_PIVOT_SPEED_DOWN_SLOW = -.1;					//-.2
 
 
 Intake::Intake():// construction, in same order as .h
-		// PivotMotor,
+		// PivotMotor, NOTE: Moved these into .h for now
 		// BeaterBarMotor,
 		// BeamBreak,
 		// UpperLimit,
@@ -50,22 +50,21 @@ Intake::Intake():// construction, in same order as .h
 		{
 	BeaterBarMotor.SetInverted(true);
 	PivotMotor.SetInverted(true);
-	// BeaterBarMotor.ConfigOpenloopRamp(0.3, 0);
+	// BeaterBarMotor.ConfigOpenloopRamp(0.3, 0); // NOTE: I have left this in for now, as the below translation into cansparkmax may not be accurate. Remove later when solution found
 	BeaterBarMotor.SetOpenLoopRampRate(.3);
-	// SetNeutral(true);
-	//The below is a replacement for setneutral at the moment
+	SetNeutral(true);
 	_desiredPivotSpeed = 0;
 	_beaterBarSpeed = 0;
 	_pivotControlMode = MANUAL;
 	isAtPosition = false;
 }
 
-//Probably not needed anymore 
-// void Intake::SetNeutral(bool neutral){
-// 	NeutralMode n = neutral ? NeutralMode::Coast : NeutralMode::Brake;
-// 	BeaterBarMotor.SetIdleMode(n); //Needs a burn flash
-// 	PivotMotor.SetNeutralMode(n);
-// }
+void Intake::SetNeutral(bool neutral){
+	ctre::phoenix::motorcontrol::NeutralMode ctrenmode = neutral ? ctre::phoenix::motorcontrol::NeutralMode::Coast : ctre::phoenix::motorcontrol::NeutralMode::Brake;
+	rev::CANSparkMax::IdleMode revnmode = neutral ? rev::CANSparkMax::IdleMode::kCoast : rev::CANSparkMax::IdleMode::kBrake;
+	BeaterBarMotor.SetIdleMode(revnmode); // NOTE: Needs a burn flash?
+	PivotMotor.SetNeutralMode(ctrenmode);
+}
 
 void Intake::Reset(){
 	_desiredPivotSpeed = 0;

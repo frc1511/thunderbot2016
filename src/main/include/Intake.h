@@ -107,7 +107,6 @@ class Intake {
 	private:
 	ctre::phoenix::motorcontrol::can::TalonSRX PivotMotor {CAN_ID_BREACHER_PIVOT};
 	rev::CANSparkMax BeaterBarMotor {CAN_ID_BREACHER_BEATER_BAR, rev::CANSparkMax::MotorType::kBrushless};
-	// frc::DigitalInput BeamBreak {DIG_IO_BREACHER_BEAM_BREAK};
 	frc::DigitalInput UpperLimit {DIG_IO_BREACHER_UPPER_LIMIT};
 	frc::DigitalInput LowerLimit {DIG_IO_BREACHER_LOWER_LIMIT};
 	frc::AnalogPotentiometer PivotPot {ANALOG_IN_BREACHER_POT};
@@ -120,11 +119,11 @@ class Intake {
 	typedef enum {GOTO, MANUAL} pivotControl;
 
 	bool isAtPosition = false;
+
 	/*
 	 * Set all motors to neutral for easy manual manipulation
-	 * Currently commented out because now requires burnflash :P
 	 */
-	// void SetNeutral(bool neutral);
+	void SetNeutral(bool neutral);
 
 	pivotControl _pivotControlMode;
 };

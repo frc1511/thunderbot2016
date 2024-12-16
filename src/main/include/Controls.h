@@ -39,7 +39,7 @@ private:
 	// ControlsButton::ControlsButton *_brokenArmRotate;
 	// ControlsButton::ControlsButton *_brokenArmTelescope;
 	ControlsButton *_brokenInPitMode;
-	// do not need one for borken use tank
+	// do not need one for broken use tank
 
 
 	// Joysticks for drivers
