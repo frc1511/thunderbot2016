@@ -5,7 +5,7 @@
 #include "ControlsButton.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
-#include <frc/Joystick.h>
+#include <frc/XboxController.h>
 
 class Controls{
 
@@ -43,8 +43,8 @@ private:
 
 
 	// Joysticks for drivers
-	frc::Joystick *_driverJoystick;
-	frc::Joystick *_auxJoystick;
+	frc::XboxController _driverJoystick {0};
+	frc::XboxController _auxJoystick {1};
 
 	// Buttons for drivers
 	ControlsButton *_driverSwapDrive;

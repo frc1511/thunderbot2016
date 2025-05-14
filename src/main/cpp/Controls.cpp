@@ -73,12 +73,12 @@ Controls::Controls(Drive *drive, Intake *intake)
 	// _brokenInPitMode = new ControlsButton(_brokenJoystick, BROKEN_IN_PIT_MODE);
 
 	// create driver controller objects
-	_driverJoystick = new Joystick(JOYSTICK_DRIVER);
-	_driverSwapDrive = new ControlsButton(_driverJoystick, DRIVER_SWAP_DRIVE_BUTTON);
-	_swapDrive = 0;
+	// _driverJoystick = new Joystick(JOYSTICK_DRIVER);
+	// _driverSwapDrive = new ControlsButton(_driverJoystick, DRIVER_SWAP_DRIVE_BUTTON);
+	// _swapDrive = 0;
 
 	// create aux controller objects
-	_auxJoystick = new Joystick(JOYSTICK_AUX);
+	// _auxJoystick = new Joystick(JOYSTICK_AUX);
 // #if 0
 // 	_auxScalerUp = new ControlsButton(_auxJoystick, AUX_SCALER_UP_BUTTON);
 // 	_auxScalerDown = new ControlsButton(_auxJoystick, AUX_SCALER_DOWN_BUTTON);
@@ -86,7 +86,7 @@ Controls::Controls(Drive *drive, Intake *intake)
 // 	_auxScalerUp = new ControlsButton(_auxJoystick, AUX_SCALER_UP_POV,  true);
 // 	_auxScalerDown = new ControlsButton(_auxJoystick, AUX_SCALER_DOWN_POV, true);
 // #endif
-	_auxIntakeDrawbridge = new ControlsButton(_auxJoystick, AUX_INTAKE_DRAWBRIDGE);
+	// _auxIntakeDrawbridge = new ControlsButton(_auxJoystick, AUX_INTAKE_DRAWBRIDGE);
 
 
 	// initialize dashboard items
@@ -132,18 +132,18 @@ void Controls::ProcessControllerDriver()
 	float motorDriveLeft;
 	float motorDriveRight;
 
-	driveLeftY = -GetPosition(_driverJoystick, DRIVER_LEFT_Y_AXIS); // joystick Y values are inverted
-	driveRightX = GetPosition(_driverJoystick, DRIVER_RIGHT_X_AXIS);
-	turboLeft = (GetPosition(_driverJoystick, DRIVER_LEFT_TRIGGER_AXIS) > 0);
-	turboRight = (GetPosition(_driverJoystick, DRIVER_RIGHT_TRIGGER_AXIS) > 0);
-	slowLeft = _driverJoystick->GetRawButton(DRIVER_LEFT_SLOW_BUTTON);
-	slowRight = _driverJoystick->GetRawButton(DRIVER_RIGHT_SLOW_BUTTON);
+	driveLeftY = -_driverJoystick.GetLeftY(); // joystick Y values are inverted
+	driveRightX = _driverJoystick.GetRightX();
+	turboLeft = _driverJoystick.GetLeftTriggerAxis() > 0.2;
+	turboRight = _driverJoystick.GetRightTriggerAxis() > 0.2;
+	slowLeft = _driverJoystick.GetLeftBumperButton();
+	slowRight = _driverJoystick.GetRightBumperButton();
 
 	// determine type of drive to do
 	if (_brokenJoystick->GetRawButton(BROKEN_USE_TANK))
 	{
 		// use tank drive
-		bool driveRightY = -GetPosition(_driverJoystick, DRIVER_RIGHT_Y_AXIS); // joystick Y values are inverted
+		bool driveRightY = -_driverJoystick.GetRightY(); // joystick Y values are inverted
 		motorDriveLeft = GetPower(driveLeftY, slowLeft, turboLeft);
 		motorDriveRight = GetPower(driveRightY, slowRight, turboRight);
 	}
@@ -210,18 +210,19 @@ void Controls::ProcessControllerAux()
 {
 	float auxBreacherPivot;
 	Intake::BeaterBarDirection beaterDirection;
-	if(!_auxIntakeDrawbridge->Pressed()){
-		auxBreacherPivot = GetPosition(_auxJoystick, AUX_LEFT_Y_AXIS); // we want Y value to be inverted
+	_auxIntakeDrawbridge = _auxJoystick.GetYButton();
+	if(!_auxIntakeDrawbridge){
+		auxBreacherPivot = _auxJoystick.GetYAxis(); // we want Y value to be inverted
 		_intake->Pivot(auxBreacherPivot);
 	}
 
 	// check intake button to see if its state changed
 	beaterDirection = Intake::BeaterBarDirection::STOP;
-	if (_auxJoystick->GetRawButton(AUX_INTAKE_IN_BUTTON))
+	if (_auxJoystick.GetRightBumperButton())
 	{
 		beaterDirection = Intake::BeaterBarDirection::IN;
 	}
-	if (GetPosition(_auxJoystick, AUX_INTAKE_OUT_AXIS) > 0)
+	if (_auxJoystick.GetRightTriggerAxis() > .2)
 	{
 		beaterDirection = Intake::BeaterBarDirection::OUT;
 	}
@@ -229,9 +230,9 @@ void Controls::ProcessControllerAux()
 
 	// check drawbridge preset
 #if 1
-	if (_auxIntakeDrawbridge->Process())
-	{
-		if (_auxIntakeDrawbridge->Pressed())
+	// if (_auxIntakeDrawbridge->Process())
+	// {
+		if (_auxIntakeDrawbridge)
 		{
 			_intake->Drawbridge_Position();
 		}
@@ -239,32 +240,9 @@ void Controls::ProcessControllerAux()
 		{
 			_intake->Stop_Goto();
 		}
-	}
+	// }
 #endif
 }
-
-float Controls::GetPosition(Joystick *joystick, int axis, bool fullrange)
-{
-	float position;
-
-	position = joystick->GetRawAxis(axis);
-
-	// Deadzone, prevents motors from running
-	if ((position > -.3) && (position < .3))
-	{
-		position = 0; //when not touching the joysticks
-	}
-	else if (fullrange){
-		if(position > 0){
-			position = (position - .3)/.7;
-		}
-		else{
-			position = ((abs(position)-.3)/.7)*-1;
-		}
-	}
-	return (position);
-}
-
 
 float Controls::GetPower(float power, bool slow, bool turbo)
 {
@@ -308,7 +286,6 @@ float Controls::GetPowerTurn(float power, bool slow, bool turbo)
 	}
 	return (power);
 }
-
 
 // Broken switches
 void Controls::ProcessBroken()
