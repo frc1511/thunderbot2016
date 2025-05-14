@@ -349,6 +349,7 @@ void Controls::ProcessDashboard()
 		_breacherPosition = breacherPosition;
 		SmartDashboard::PutNumber("thunderdashboard_breacher", _breacherPosition);
 	}
+	SmartDashboard::PutNumber("Piv Ang", _intake->Pivot_Get_Angle());
 
 	// see if robot has ball
 	int haveBall;

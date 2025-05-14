@@ -5,6 +5,7 @@
 #include <frc/AnalogPotentiometer.h>
 #include <frc/DigitalInput.h>
 #include "IOMap.h"
+#include <frc/smartdashboard/SmartDashboard.h>
 
 using namespace frc;
 

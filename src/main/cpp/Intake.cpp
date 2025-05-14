@@ -3,8 +3,8 @@
 
 const double BEATER_BAR_SPEED_IN = .65;     	//Speed of Intake Going In
 const double BEATER_BAR_SPEED_OUT = -.8;   	//Speed of Intake Going Out
-const double PIVOT_LOWER_LIMIT_ANGLE = 0;  	//normalized value of the low value of the pivot potentiometer, dont mess with this
-const double PIVOT_UPPER_LIMIT_ANGLE = .98;	//normalized value of the High value of the pivot potentiometer, dont mess with this
+const double PIVOT_LOWER_LIMIT_ANGLE = .29;  	//normalized value of the low value of the pivot potentiometer, dont mess with this
+const double PIVOT_UPPER_LIMIT_ANGLE = .87;	//normalized value of the High value of the pivot potentiometer, dont mess with this
 const double PIVOT_GOTO_DRAWBRIDGE = .32;  	//value we need to go to for the Drawbridge, set when controls uses Drawbridge_Value()
 //#ifdef robot_2
 //const double PIVOT_POT_HIGH_VALUE = 2.98;   	//absolute value of the high point of the breacher, change this when we change the breacher
@@ -30,7 +30,7 @@ const float MAX_PIVOT_GRAV_SPEED_DOWN = -0.75f;					// -.75
 const float MAX_PIVOT_SPEED_UP_SLOW = .3;						//.2
 const float MAX_PIVOT_SPEED_DOWN_SLOW = -.1;					//-.2
 
-#define INTAKE_PIVOT_DEBUG 0
+#define INTAKE_PIVOT_DEBUG 1
 
 
 Intake::Intake():// construction, in same order as .h
@@ -169,7 +169,7 @@ void Intake::Process() {
 	BeaterBarMotor.Set(_beaterBarSpeed); //Applies calculated values of _beaterBarSpeed to the Beater Bar Motor
 	PivotMotor.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, _desiredPivotSpeed); //Applies calculated value of _desiredPivotSpeed to the Pivot Motor
 	/*DEBUG*/
-
+	// printf("%lf\n", _desiredPivotSpeed);
 }
 
 void Intake::Pivot(float speed){// as it says in Pivot.h, just sets a variable with the speed, which is dealt with in process
@@ -190,7 +190,7 @@ bool Intake::Pivot_At_Lower_Stop(){//as it says in Intake.h
 	return LowerLimit.Get() || (Pivot_Get_Angle() <= PIVOT_LOWER_LIMIT_ANGLE);
 }
 
-float Intake::Pivot_Get_Angle(){//as it says in Intake.h
+float Intake::Pivot_Get_Angle(){//as it says in Intake.h //! NOTE for me when I forget: the pot looked like it was reading silly negativs :P
 	return (PivotPot.Get() - PIVOT_POT_LOW_VALUE) / (PIVOT_POT_HIGH_VALUE - PIVOT_POT_LOW_VALUE);
 }
 
