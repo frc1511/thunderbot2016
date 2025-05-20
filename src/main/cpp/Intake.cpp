@@ -157,7 +157,6 @@ void Intake::Process() {
 			_desiredPivotSpeed = MAX_PIVOT_SPEED_DOWN;
 	}
 
-
 	//printf("%f Beaterafter \n", (double)_beaterBarSpeed);
 	if (_beaterBarSpeed > 0 && /*!BeamBreak.Get()) && */!_beaterBroken){
 		_beaterBarSpeed = 0;										//if we broken or we got a ball and we tryin an roll balls in

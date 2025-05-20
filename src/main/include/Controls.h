@@ -51,7 +51,7 @@ private:
 	int _swapDrive;				// state based on control (i.e. Controls is managing the state)
 
 	// Buttons for aux
-	ControlsButton *_auxIntakeDrawbridge;
+	bool _auxIntakeDrawbridge;
 
 	// Dashboard
 	bool _dashboardInitialized;

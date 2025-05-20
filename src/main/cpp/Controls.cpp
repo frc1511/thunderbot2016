@@ -136,8 +136,8 @@ void Controls::ProcessControllerDriver()
 	driveRightX = _driverJoystick.GetRightX();
 	turboLeft = _driverJoystick.GetLeftTriggerAxis() > 0.2;
 	turboRight = _driverJoystick.GetRightTriggerAxis() > 0.2;
-	slowLeft = _driverJoystick.GetLeftBumperButton();
-	slowRight = _driverJoystick.GetRightBumperButton();
+	slowLeft = _driverJoystick.GetLeftBumper();
+	slowRight = _driverJoystick.GetRightBumper();
 
 	// determine type of drive to do
 	if (_brokenJoystick->GetRawButton(BROKEN_USE_TANK))
@@ -212,13 +212,13 @@ void Controls::ProcessControllerAux()
 	Intake::BeaterBarDirection beaterDirection;
 	_auxIntakeDrawbridge = _auxJoystick.GetYButton();
 	if(!_auxIntakeDrawbridge){
-		auxBreacherPivot = _auxJoystick.GetYAxis(); // we want Y value to be inverted
+		auxBreacherPivot = _auxJoystick.GetLeftY(); // we want Y value to be inverted
 		_intake->Pivot(auxBreacherPivot);
 	}
 
 	// check intake button to see if its state changed
 	beaterDirection = Intake::BeaterBarDirection::STOP;
-	if (_auxJoystick.GetRightBumperButton())
+	if (_auxJoystick.GetRightBumper())
 	{
 		beaterDirection = Intake::BeaterBarDirection::IN;
 	}
