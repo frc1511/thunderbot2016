@@ -189,12 +189,16 @@ bool Intake::Pivot_At_Lower_Stop(){//as it says in Intake.h
 	return LowerLimit.Get() || (Pivot_Get_Angle() <= PIVOT_LOWER_LIMIT_ANGLE);
 }
 
+float Intake::Pivot_Get_Raw_Angle() {
+	return PivotPot.Get();
+}
+
 float Intake::Pivot_Get_Angle(){//as it says in Intake.h //! NOTE for me when I forget: the pot looked like it was reading silly negativs :P
-	return (PivotPot.Get() - PIVOT_POT_LOW_VALUE) / (PIVOT_POT_HIGH_VALUE - PIVOT_POT_LOW_VALUE);
+	return (Pivot_Get_Raw_Angle() - PIVOT_POT_LOW_VALUE) / (PIVOT_POT_HIGH_VALUE - PIVOT_POT_LOW_VALUE);
 }
 
 bool Intake::Is_Ball_Acquired(){//as it says in Intake.h
-	return true;//!BeamBreak.Get();
+	return true;//!BeamBreak.Get(); //NOTE: This is !BeamBreak.Get();, it may be red if you have BetterComments
 }
 
 void Intake::Beater_Bar(BeaterBarDirection direction){
