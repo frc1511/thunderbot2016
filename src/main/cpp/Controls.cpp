@@ -131,6 +131,7 @@ void Controls::ProcessControllerDriver()
 	bool turboRight;
 	float motorDriveLeft;
 	float motorDriveRight;
+	bool swapDrive;
 
 	driveLeftY = -_driverJoystick.GetLeftY(); // joystick Y values are inverted
 	driveRightX = _driverJoystick.GetRightX();
@@ -138,12 +139,13 @@ void Controls::ProcessControllerDriver()
 	turboRight = _driverJoystick.GetRightTriggerAxis() > 0.2;
 	slowLeft = _driverJoystick.GetLeftBumper();
 	slowRight = _driverJoystick.GetRightBumper();
+	swapDrive = _driverJoystick.GetAButtonPressed();
 
 	// determine type of drive to do
 	if (_brokenJoystick->GetRawButton(BROKEN_USE_TANK))
 	{
 		// use tank drive
-		bool driveRightY = -_driverJoystick.GetRightY(); // joystick Y values are inverted
+		float driveRightY = -_driverJoystick.GetRightY(); // joystick Y values are inverted
 		motorDriveLeft = GetPower(driveLeftY, slowLeft, turboLeft);
 		motorDriveRight = GetPower(driveRightY, slowRight, turboRight);
 	}
@@ -184,7 +186,7 @@ void Controls::ProcessControllerDriver()
 	}
 
 	// see if drive needs to be swapped
-	if (_driverSwapDrive->Process() && _driverSwapDrive->Pressed())
+	if (swapDrive)
 	{
 		if (_swapDrive == 0)
 		{
@@ -196,13 +198,13 @@ void Controls::ProcessControllerDriver()
 		}
 	}
 
+
 	// if drive needs to be swapped, then just negate the power
 	if (_swapDrive == 1)
 	{
 		motorDriveLeft = -motorDriveLeft;
 		motorDriveRight = -motorDriveRight;
 	}
-
 	_drive->Move_Speed(motorDriveLeft, motorDriveRight);
 }
 

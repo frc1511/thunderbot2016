@@ -30,7 +30,7 @@ const float MAX_PIVOT_GRAV_SPEED_DOWN = -0.75f;					// -.75
 const float MAX_PIVOT_SPEED_UP_SLOW = .3;						//.2
 const float MAX_PIVOT_SPEED_DOWN_SLOW = -.1;					//-.2
 
-#define INTAKE_PIVOT_DEBUG 1
+#define INTAKE_PIVOT_DEBUG 0
 
 
 Intake::Intake():// construction, in same order as .h
