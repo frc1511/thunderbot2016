@@ -1,8 +1,8 @@
 #include "Intake.h"
 #include "IOMap.h"
 
-const double BEATER_BAR_SPEED_IN = .65;     	//Speed of Intake Going In
-const double BEATER_BAR_SPEED_OUT = -.8;   	//Speed of Intake Going Out
+const double BEATER_BAR_SPEED_IN = -.25;     	//Speed of Intake Going In
+const double BEATER_BAR_SPEED_OUT = .8;   	//Speed of Intake Going Out
 const double PIVOT_LOWER_LIMIT_ANGLE = .29;  	//normalized value of the low value of the pivot potentiometer, dont mess with this
 const double PIVOT_UPPER_LIMIT_ANGLE = .87;	//normalized value of the High value of the pivot potentiometer, dont mess with this
 const double PIVOT_GOTO_DRAWBRIDGE = .32;  	//value we need to go to for the Drawbridge, set when controls uses Drawbridge_Value()
@@ -10,8 +10,8 @@ const double PIVOT_GOTO_DRAWBRIDGE = .32;  	//value we need to go to for the Dra
 //const double PIVOT_POT_HIGH_VALUE = 2.98;   	//absolute value of the high point of the breacher, change this when we change the breacher
 //const double PIVOT_POT_LOW_VALUE = 0.34;    	//absolute value of the low point of the breacher, change this when we change the breacher
 //#else
-const double PIVOT_POT_HIGH_VALUE = 4.14;//3.13 4.33;   	//absolute value of the high point of the breacher, change this when we change the breacher
-const double PIVOT_POT_LOW_VALUE = 1.4;//.32 1.78;    	//absolute value of the low point of the breacher, change this when we change the breacher
+const double PIVOT_POT_HIGH_VALUE = .847;//3.13 4.33;   	//absolute value of the high point of the breacher, change this when we change the breacher
+const double PIVOT_POT_LOW_VALUE = .276;//.32 1.78;    	//absolute value of the low point of the breacher, change this when we change the breacher
 //#endif
 
 // TORONTO #'s
@@ -158,7 +158,7 @@ void Intake::Process() {
 	}
 
 	//printf("%f Beaterafter \n", (double)_beaterBarSpeed);
-	if (_beaterBarSpeed > 0 && /*!BeamBreak.Get()) && */!_beaterBroken){
+	if (_beaterBarSpeed > 0 && /*!BeamBreak.Get()) && */_beaterBroken){
 		_beaterBarSpeed = 0;										//if we broken or we got a ball and we tryin an roll balls in
 	}
 	//printf("%f BeaterB4", (double)_beaterBarSpeed);
@@ -193,12 +193,12 @@ float Intake::Pivot_Get_Raw_Angle() {
 	return PivotPot.Get();
 }
 
-float Intake::Pivot_Get_Angle(){//as it says in Intake.h //! NOTE for me when I forget: the pot looked like it was reading silly negativs :P
+float Intake::Pivot_Get_Angle(){//as it says in Intake.h
 	return (Pivot_Get_Raw_Angle() - PIVOT_POT_LOW_VALUE) / (PIVOT_POT_HIGH_VALUE - PIVOT_POT_LOW_VALUE);
 }
 
 bool Intake::Is_Ball_Acquired(){//as it says in Intake.h
-	return true;//!BeamBreak.Get(); //NOTE: This is !BeamBreak.Get();, it may be red if you have BetterComments
+	return true; ///// !BeamBreak.Get();
 }
 
 void Intake::Beater_Bar(BeaterBarDirection direction){

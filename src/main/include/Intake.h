@@ -42,7 +42,7 @@ class Intake {
 	/* tells user where the intake is
 	 * Returns a value between 0 and 1
 	 * This value should span between the most horizontal and vertical position the Intake will be at
-	 * If it is at o, the Intake will be at its most horizontal position
+	 * If it is at 0, the Intake will be at its most horizontal position
 	 * if it is at 1, the Intake will be at its most vertical position
 	 * should get a value from a potentiometer and span the value to be less than or equal to 1
 	 */

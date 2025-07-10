@@ -36,11 +36,9 @@ private:
 	frc::Joystick *_brokenJoystick;
 	ControlsButton *_brokenBreacherPivot;
 	ControlsButton *_brokenBreacherIntake;
-	// ControlsButton::ControlsButton *_brokenArmRotate;
-	// ControlsButton::ControlsButton *_brokenArmTelescope;
+	ControlsButton *_driveDisable; //// _brokenArmRotate
+	ControlsButton *_auxDisable; ////_brokenArmTelescope
 	ControlsButton *_brokenInPitMode;
-	// do not need one for broken use tank
-
 
 	// Joysticks for drivers
 	frc::XboxController _driverJoystick {0};
@@ -57,6 +55,8 @@ private:
 	bool _dashboardInitialized;
 	int _breacherPosition;
 	int _haveBall;
+	bool _driveDisabled;
+	bool _auxDisabled;
 	// int _armLocked;
 	// int _frontCamera;
 	int _driveReverse;

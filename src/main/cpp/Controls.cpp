@@ -6,8 +6,8 @@
 
 #define BROKEN_BREACHER_PIVOT 1
 #define BROKEN_BREACHER_INTAKE 2
-#define BROKEN_ARM_ROTATE 3
-#define BROKEN_ARM_TELESCOPE 4
+#define DRIVE_DISABLE 3
+#define AUX_DISABLE 4
 #define BROKEN_IN_PIT_MODE 6
 #define BROKEN_USE_TANK 7
 
@@ -68,8 +68,8 @@ Controls::Controls(Drive *drive, Intake *intake)
 	_brokenJoystick = new Joystick(JOYSTICK_BROKEN);
 	_brokenBreacherPivot = new ControlsButton(_brokenJoystick, BROKEN_BREACHER_PIVOT);
 	_brokenBreacherIntake = new ControlsButton(_brokenJoystick, BROKEN_BREACHER_INTAKE);
-	// _brokenArmRotate = new  ControlsButton(_brokenJoystick, BROKEN_ARM_ROTATE);
-	// _brokenArmTelescope = new ControlsButton(_brokenJoystick, BROKEN_ARM_TELESCOPE);
+	_driveDisable = new  ControlsButton(_brokenJoystick, DRIVE_DISABLE);
+	_auxDisable = new ControlsButton(_brokenJoystick, AUX_DISABLE);
 	// _brokenInPitMode = new ControlsButton(_brokenJoystick, BROKEN_IN_PIT_MODE);
 
 	// create driver controller objects
@@ -93,6 +93,8 @@ Controls::Controls(Drive *drive, Intake *intake)
 	_dashboardInitialized = false;
 	_breacherPosition = 0;
 	_haveBall = 0;
+	_driveDisabled = false;
+	_auxDisabled = false;
 	// _armLocked = 0;
 	// _frontCamera = 0;
 	_driveReverse = 0;
@@ -112,8 +114,8 @@ void Controls::Process(RobotMode robotmode)
 	// process controllers
 	if (robotmode == TELE_OP)
 	{
-		ProcessControllerDriver();
-		ProcessControllerAux();
+		if (!_driveDisabled) ProcessControllerDriver();
+		if (!_auxDisabled) ProcessControllerAux();
 	}
 
 	// update dashboard
@@ -222,11 +224,11 @@ void Controls::ProcessControllerAux()
 	beaterDirection = Intake::BeaterBarDirection::STOP;
 	if (_auxJoystick.GetRightBumper())
 	{
-		beaterDirection = Intake::BeaterBarDirection::IN;
+		beaterDirection = Intake::BeaterBarDirection::OUT;
 	}
 	if (_auxJoystick.GetRightTriggerAxis() > .2)
 	{
-		beaterDirection = Intake::BeaterBarDirection::OUT;
+		beaterDirection = Intake::BeaterBarDirection::IN;
 	}
 	_intake->Beater_Bar(beaterDirection);
 
@@ -300,14 +302,14 @@ void Controls::ProcessBroken()
 	{
 		_intake->Beater_Bar_Set_Broken(_brokenBreacherIntake->Pressed());
 	}
-	// if (_brokenArmRotate->Process())
-	// {
-	// 	// _scaler->Pivot_Set_Broken(_brokenArmRotate->Pressed());
-	// }
-	// if (_brokenArmTelescope->Process())
-	// {
-	// 	// _scaler->Extension_Set_Broken(_brokenArmTelescope->Pressed());
-	// }
+	if (_driveDisable->Process())
+	{
+		_driveDisabled = _driveDisable->Pressed();
+	}
+	if (_auxDisable->Process())
+	{
+		_auxDisabled = _auxDisable->Pressed();
+	}
 	// if (_brokenInPitMode->Process())
 	// {
 	// 	// _scaler->RunInPitMode(_brokenInPitMode->Pressed());
@@ -323,12 +325,15 @@ void Controls::ProcessDashboard()
 
 	// see if breacher pivot changed
 	int breacherPosition = (int)(_intake->Pivot_Get_Angle() * 100.0);
-	if ((breacherPosition != _breacherPosition) || !_dashboardInitialized)
-	{
+	if ((breacherPosition != _breacherPosition) || !_dashboardInitialized) {
 		_breacherPosition = breacherPosition;
 		SmartDashboard::PutNumber("thunderdashboard_breacher", _breacherPosition);
 	}
 	SmartDashboard::PutNumber("Piv Ang", _intake->Pivot_Get_Angle());
+	SmartDashboard::PutNumber("Piv Ang Raw", _intake->Pivot_Get_Raw_Angle());
+
+	SmartDashboard::PutBoolean("Drive Disabled", _driveDisabled);
+	SmartDashboard::PutBoolean("Aux Disabled", _auxDisabled);
 
 	// see if robot has ball
 	int haveBall;
@@ -343,7 +348,7 @@ void Controls::ProcessDashboard()
 	if ((haveBall != _haveBall) || !_dashboardInitialized)
 	{
 		_haveBall = haveBall;
-		SmartDashboard::PutNumber("thunderdashboard_haveball", _haveBall);
+		// SmartDashboard::PutNumber("thunderdashboard_haveball", _haveBall);
 	}
 
 	// get state of drive swap to see if it changed
