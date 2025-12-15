@@ -1,9 +1,6 @@
-#ifndef CONTROLSBUTTON_H
-#define CONTROLSBUTTON_H
+#pragma once
 
-#include "frc/WPILib.h"
-
-using namespace frc;
+#include <frc/Joystick.h>
 
 class ControlsButton{
 
@@ -13,8 +10,8 @@ public:
 	// button		- button number to use (1 means button 1)
 	//					OR the POV angle if isPov is true
 	// isPov        - it is on the POV?
-	ControlsButton(Joystick *joystick, int button);
-	ControlsButton(Joystick *joystick, int button, bool isPov);
+	ControlsButton(frc::Joystick *joystick, int button);
+	ControlsButton(frc::Joystick *joystick, int button, bool isPov);
 
 	// destructor
 	~ControlsButton();
@@ -29,7 +26,7 @@ public:
 
 private:
 	// joystick that has the button
-	Joystick *_joystick = NULL;
+	frc::Joystick *_joystick = NULL;
 
 	// button on the joystick OR POV angle
 	int _button = -1;
@@ -43,5 +40,3 @@ private:
 	// did we do an initialization yet?
 	bool _init = false;
 };
-
-#endif // CONTROLSBUTTON_H

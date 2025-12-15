@@ -1,10 +1,9 @@
-#include "frc/WPILib.h"
 #include <ControlsButton.h>
 
 // constructor
 // joystick		- pointer to joystick that has the button to use
 // button		- button number to use (1 means button 1)
-ControlsButton::ControlsButton(Joystick *joystick, int button)
+ControlsButton::ControlsButton(frc::Joystick *joystick, int button)
 {
 	_joystick = joystick;
 	_button = button;
@@ -12,7 +11,7 @@ ControlsButton::ControlsButton(Joystick *joystick, int button)
 	_isPov = false;
 	_init = false;
 }
-ControlsButton::ControlsButton(Joystick *joystick, int button, bool isPov)
+ControlsButton::ControlsButton(frc::Joystick *joystick, int button, bool isPov)
 {
 	_joystick = joystick;
 	_button = button;

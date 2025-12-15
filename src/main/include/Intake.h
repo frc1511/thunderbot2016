@@ -1,9 +1,11 @@
-#ifndef INTAKE_H_
-#define INTAKE_H_
+#pragma once
 
-#include "frc/WPILib.h"
-#include <ctre/Phoenix.h>
-#include "Feedback.h"
+#include <ctre/phoenix/motorcontrol/can/TalonSRX.h>
+#include <rev/CANSparkmax.h>
+#include <frc/AnalogPotentiometer.h>
+#include <frc/DigitalInput.h>
+#include "IOMap.h"
+#include <frc/smartdashboard/SmartDashboard.h>
 
 using namespace frc;
 
@@ -13,10 +15,6 @@ class Intake {
 	typedef enum {IN, OUT, STOP} BeaterBarDirection;
 
 	Intake();
-
-	/*debug*/
-	void Debug(Feedback *feedback);
-
 	/* tells the intake to rotate at a specified speed
 	 *  Takes in speed you want to move the Pivot
 	 * Speed takes a value of -1 to 1
@@ -39,10 +37,12 @@ class Intake {
 	 */
 	bool Pivot_At_Lower_Stop();
 
+	float Pivot_Get_Raw_Angle();
+
 	/* tells user where the intake is
 	 * Returns a value between 0 and 1
 	 * This value should span between the most horizontal and vertical position the Intake will be at
-	 * If it is at o, the Intake will be at its most horizontal position
+	 * If it is at 0, the Intake will be at its most horizontal position
 	 * if it is at 1, the Intake will be at its most vertical position
 	 * should get a value from a potentiometer and span the value to be less than or equal to 1
 	 */
@@ -108,28 +108,25 @@ class Intake {
 	 */
 	void Stop_Goto();
 	private:
-	ctre::phoenix::motorcontrol::can::TalonSRX PivotMotor;
-	ctre::phoenix::motorcontrol::can::TalonSRX BeaterBarMotor;
-	DigitalInput BeamBreak;
-	DigitalInput UpperLimit;
-	DigitalInput LowerLimit;
-	AnalogInput PivotPot;
+	ctre::phoenix::motorcontrol::can::TalonSRX PivotMotor {CAN_ID_BREACHER_PIVOT};
+	rev::CANSparkMax BeaterBarMotor {CAN_ID_BREACHER_BEATER_BAR, rev::CANSparkMax::MotorType::kBrushless};
+	frc::DigitalInput UpperLimit {DIG_IO_BREACHER_UPPER_LIMIT};
+	frc::DigitalInput LowerLimit {DIG_IO_BREACHER_LOWER_LIMIT};
+	frc::AnalogPotentiometer PivotPot {ANALOG_IN_BREACHER_POT};
 
-	float _desiredPivotSpeed;
-	float _beaterBarSpeed;
-	float _desiredGotoAngle;
-	bool _pivotBroken;
-	bool _beaterBroken;
+	float _desiredPivotSpeed = 0;
+	float _beaterBarSpeed = 0;
+	float _desiredGotoAngle = 0;
+	bool _pivotBroken = false;
+	bool _beaterBroken = false;
 	typedef enum {GOTO, MANUAL} pivotControl;
 
-	bool isAtPosition;
+	bool isAtPosition = false;
+
 	/*
 	 * Set all motors to neutral for easy manual manipulation
 	 */
 	void SetNeutral(bool neutral);
 
 	pivotControl _pivotControlMode;
-
-
 };
-#endif

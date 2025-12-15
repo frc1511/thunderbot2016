@@ -1,16 +1,17 @@
 #include "Intake.h"
 #include "IOMap.h"
-const double BEATER_BAR_SPEED_IN = .65;     	//Speed of Intake Going In
-const double BEATER_BAR_SPEED_OUT = -.8;   	//Speed of Intake Going Out
-const double PIVOT_LOWER_LIMIT_ANGLE = 0;  	//normalized value of the low value of the pivot potentiometer, dont mess with this
-const double PIVOT_UPPER_LIMIT_ANGLE = .98;	//normalized value of the High value of the pivot potentiometer, dont mess with this
+
+const double BEATER_BAR_SPEED_IN = -.25;     	//Speed of Intake Going In
+const double BEATER_BAR_SPEED_OUT = .8;   	//Speed of Intake Going Out
+const double PIVOT_LOWER_LIMIT_ANGLE = .29;  	//normalized value of the low value of the pivot potentiometer, dont mess with this
+const double PIVOT_UPPER_LIMIT_ANGLE = .87;	//normalized value of the High value of the pivot potentiometer, dont mess with this
 const double PIVOT_GOTO_DRAWBRIDGE = .32;  	//value we need to go to for the Drawbridge, set when controls uses Drawbridge_Value()
 //#ifdef robot_2
 //const double PIVOT_POT_HIGH_VALUE = 2.98;   	//absolute value of the high point of the breacher, change this when we change the breacher
 //const double PIVOT_POT_LOW_VALUE = 0.34;    	//absolute value of the low point of the breacher, change this when we change the breacher
 //#else
-const double PIVOT_POT_HIGH_VALUE = 4.14;//3.13 4.33;   	//absolute value of the high point of the breacher, change this when we change the breacher
-const double PIVOT_POT_LOW_VALUE = 1.4;//.32 1.78;    	//absolute value of the low point of the breacher, change this when we change the breacher
+const double PIVOT_POT_HIGH_VALUE = .847;//3.13 4.33;   	//absolute value of the high point of the breacher, change this when we change the breacher
+const double PIVOT_POT_LOW_VALUE = .276;//.32 1.78;    	//absolute value of the low point of the breacher, change this when we change the breacher
 //#endif
 
 // TORONTO #'s
@@ -33,51 +34,45 @@ const float MAX_PIVOT_SPEED_DOWN_SLOW = -.1;					//-.2
 
 
 Intake::Intake():// construction, in same order as .h
-		PivotMotor(CAN_ID_BREACHER_PIVOT),
-		BeaterBarMotor(CAN_ID_BREACHER_BEATER_BAR),
-		BeamBreak(DIG_IO_BREACHER_BEAM_BREAK),
-		UpperLimit(DIG_IO_BREACHER_UPPER_LIMIT),
-		LowerLimit(DIG_IO_BREACHER_LOWER_LIMIT),
-		PivotPot(ANALOG_IN_BREACHER_POT),
-	    _desiredPivotSpeed(0),
-		_beaterBarSpeed(0),
-		_desiredGotoAngle(0),
-		_pivotBroken(false),
-		_beaterBroken(false),
-		isAtPosition(false),
+		// PivotMotor, NOTE: Moved these into .h for now
+		// BeaterBarMotor,
+		// BeamBreak,
+		// UpperLimit,
+		// LowerLimit,
+		// PivotPot,
+	    // _desiredPivotSpeed,
+		// _beaterBarSpeed,
+		// _desiredGotoAngle,
+		// _pivotBroken,
+		// _beaterBroken,
+		// isAtPosition,
 		_pivotControlMode(MANUAL)
 		{
 	BeaterBarMotor.SetInverted(true);
 	PivotMotor.SetInverted(true);
-	BeaterBarMotor.ConfigOpenloopRamp(0.3, 0);
+	// BeaterBarMotor.ConfigOpenloopRamp(0.3, 0); // NOTE: I have left this in for now, as the below translation into cansparkmax may not be accurate. Remove later when solution found
+	BeaterBarMotor.SetOpenLoopRampRate(.3);
 	SetNeutral(true);
+	_desiredPivotSpeed = 0;
+	_beaterBarSpeed = 0;
+	_pivotControlMode = MANUAL;
+	isAtPosition = false;
 }
 
 void Intake::SetNeutral(bool neutral){
-	NeutralMode n = neutral ? NeutralMode::Coast : NeutralMode::Brake;
-	BeaterBarMotor.SetNeutralMode(n);
-	PivotMotor.SetNeutralMode(n);
+	ctre::phoenix::motorcontrol::NeutralMode ctrenmode = neutral ? ctre::phoenix::motorcontrol::NeutralMode::Coast : ctre::phoenix::motorcontrol::NeutralMode::Brake;
+	rev::CANSparkMax::IdleMode revnmode = neutral ? rev::CANSparkMax::IdleMode::kCoast : rev::CANSparkMax::IdleMode::kBrake;
+	BeaterBarMotor.SetIdleMode(revnmode); // NOTE: Needs a burn flash?
+	PivotMotor.SetNeutralMode(ctrenmode);
 }
 
 void Intake::Reset(){
 	_desiredPivotSpeed = 0;
 	_beaterBarSpeed = 0;
-	BeaterBarMotor.Set(ControlMode::PercentOutput, 0);
-	PivotMotor.Set(ControlMode::PercentOutput, 0);
+	BeaterBarMotor.Set(0);
+	PivotMotor.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, 0);
 	_pivotControlMode = MANUAL;
 	isAtPosition = false;
-}
-
-void Intake::Debug(Feedback *feedback){
-	feedback->send_Debug_String("Breacher", "Beater Broken State", "%s", _beaterBroken? "True":"False");
-	feedback->send_Debug_String("Breacher", "Pivot Broken State", "%s", _pivotBroken? "True":"False");
-	feedback->send_Debug_Double("Breacher", "Beater Speed",(double)_beaterBarSpeed);
-	feedback->send_Debug_Double("Breacher", "Pivot Speed",(double)_desiredPivotSpeed);
-	feedback->send_Debug_Double("Breacher", "Pot Sensor",(double)PivotPot.GetVoltage());
-	feedback->send_Debug_Double("Breacher", "Pot Sensor 1-0",(double)Pivot_Get_Angle());
-	feedback->send_Debug_String("Breacher", "Pivot Upper Limit", "%s", UpperLimit.Get()? "True":"False");
-	feedback->send_Debug_String("Breacher", "Pivot Lower Limit", "%s", LowerLimit.Get()? "True":"False");
-	feedback->send_Debug_String("Breacher", "Intake Beam Break", "%s", !BeamBreak.Get()? "True":"False");
 }
 
 void Intake::Process() {
@@ -162,19 +157,18 @@ void Intake::Process() {
 			_desiredPivotSpeed = MAX_PIVOT_SPEED_DOWN;
 	}
 
-
 	//printf("%f Beaterafter \n", (double)_beaterBarSpeed);
-	if ((_beaterBarSpeed > 0 && !BeamBreak.Get()) && !_beaterBroken){
+	if (_beaterBarSpeed > 0 && /*!BeamBreak.Get()) && */_beaterBroken){
 		_beaterBarSpeed = 0;										//if we broken or we got a ball and we tryin an roll balls in
 	}
 	//printf("%f BeaterB4", (double)_beaterBarSpeed);
 	/*
 	Apply Values
 	*/
-	BeaterBarMotor.Set(ControlMode::PercentOutput, _beaterBarSpeed); //Applies calculated values of _beaterBarSpeed to the Beater Bar Motor
-	PivotMotor.Set(ControlMode::PercentOutput, _desiredPivotSpeed); //Applies calculated value of _desiredPivotSpeed to the Pivot Motor
+	BeaterBarMotor.Set(_beaterBarSpeed); //Applies calculated values of _beaterBarSpeed to the Beater Bar Motor
+	PivotMotor.Set(ctre::phoenix::motorcontrol::ControlMode::PercentOutput, _desiredPivotSpeed); //Applies calculated value of _desiredPivotSpeed to the Pivot Motor
 	/*DEBUG*/
-
+	// printf("%lf\n", _desiredPivotSpeed);
 }
 
 void Intake::Pivot(float speed){// as it says in Pivot.h, just sets a variable with the speed, which is dealt with in process
@@ -195,12 +189,16 @@ bool Intake::Pivot_At_Lower_Stop(){//as it says in Intake.h
 	return LowerLimit.Get() || (Pivot_Get_Angle() <= PIVOT_LOWER_LIMIT_ANGLE);
 }
 
+float Intake::Pivot_Get_Raw_Angle() {
+	return PivotPot.Get();
+}
+
 float Intake::Pivot_Get_Angle(){//as it says in Intake.h
-	return (PivotPot.GetVoltage() - PIVOT_POT_LOW_VALUE) / (PIVOT_POT_HIGH_VALUE - PIVOT_POT_LOW_VALUE);
+	return (Pivot_Get_Raw_Angle() - PIVOT_POT_LOW_VALUE) / (PIVOT_POT_HIGH_VALUE - PIVOT_POT_LOW_VALUE);
 }
 
 bool Intake::Is_Ball_Acquired(){//as it says in Intake.h
-	return !BeamBreak.Get();
+	return true; ///// !BeamBreak.Get();
 }
 
 void Intake::Beater_Bar(BeaterBarDirection direction){
