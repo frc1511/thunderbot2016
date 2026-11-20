@@ -1,7 +1,8 @@
 #pragma once
 
 #include <ctre/phoenix/motorcontrol/can/TalonSRX.h>
-#include <rev/CANSparkmax.h>
+#include <rev/SparkMax.h>
+#include <rev/config/SparkMaxConfig.h>
 #include <frc/AnalogPotentiometer.h>
 #include <frc/DigitalInput.h>
 #include "IOMap.h"
@@ -109,7 +110,8 @@ class Intake {
 	void Stop_Goto();
 	private:
 	ctre::phoenix::motorcontrol::can::TalonSRX PivotMotor {CAN_ID_BREACHER_PIVOT};
-	rev::CANSparkMax BeaterBarMotor {CAN_ID_BREACHER_BEATER_BAR, rev::CANSparkMax::MotorType::kBrushless};
+	rev::spark::SparkMaxConfig BeaterConfig;
+	rev::spark::SparkMax BeaterBarMotor {CAN_ID_BREACHER_BEATER_BAR, rev::spark::SparkMax::MotorType::kBrushless};
 	frc::DigitalInput UpperLimit {DIG_IO_BREACHER_UPPER_LIMIT};
 	frc::DigitalInput LowerLimit {DIG_IO_BREACHER_LOWER_LIMIT};
 	frc::AnalogPotentiometer PivotPot {ANALOG_IN_BREACHER_POT};

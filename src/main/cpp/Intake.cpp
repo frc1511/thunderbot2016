@@ -51,18 +51,19 @@ Intake::Intake():// construction, in same order as .h
 	BeaterBarMotor.SetInverted(true);
 	PivotMotor.SetInverted(true);
 	// BeaterBarMotor.ConfigOpenloopRamp(0.3, 0); // NOTE: I have left this in for now, as the below translation into cansparkmax may not be accurate. Remove later when solution found
-	BeaterBarMotor.SetOpenLoopRampRate(.3);
+	BeaterConfig.OpenLoopRampRate(.3);
 	SetNeutral(true);
 	_desiredPivotSpeed = 0;
 	_beaterBarSpeed = 0;
 	_pivotControlMode = MANUAL;
 	isAtPosition = false;
+	BeaterBarMotor.Configure(BeaterConfig, rev::ResetMode::kResetSafeParameters, rev::PersistMode::kNoPersistParameters);
 }
 
 void Intake::SetNeutral(bool neutral){
 	ctre::phoenix::motorcontrol::NeutralMode ctrenmode = neutral ? ctre::phoenix::motorcontrol::NeutralMode::Coast : ctre::phoenix::motorcontrol::NeutralMode::Brake;
-	rev::CANSparkMax::IdleMode revnmode = neutral ? rev::CANSparkMax::IdleMode::kCoast : rev::CANSparkMax::IdleMode::kBrake;
-	BeaterBarMotor.SetIdleMode(revnmode); // NOTE: Needs a burn flash?
+	rev::spark::SparkMaxConfig::IdleMode revnmode = neutral ? rev::spark::SparkMaxConfig::IdleMode::kCoast : rev::spark::SparkMaxConfig::IdleMode::kBrake;
+	BeaterConfig.SetIdleMode(revnmode); // NOTE: Needs a burn flash?
 	PivotMotor.SetNeutralMode(ctrenmode);
 }
 
